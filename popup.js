@@ -1,12 +1,15 @@
-// Placeholder for the HyperEVM RPC URL
 const RPC_URL = 'https://rpc.hyperliquid.xyz/evm';
+const HYPE_API_URL = 'https://api.hyperliquid.xyz/info';
 const GWEI_CONVERSION_FACTOR = 1_000_000_000;
 
-const FAST_MULTIPLIER = 1.2;
 const NORMAL_MULTIPLIER = 1.0;
-const SLOW_MULTIPLIER = 0.8;
+const FAST_MULTIPLIER = 1.2;
+const INSTANT_MULTIPLIER = 1.5;
+
+const STANDARD_GAS_LIMIT = 21000;
 
 let lastUpdateTime = null;
+let hypePrice = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   fetchGasPrice();
@@ -20,21 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateTimeSinceRefresh, 5000); // Update every 5 seconds
 });
 
-async function fetchGasPrice() {
-  const fastGweiElement = document.getElementById('fastGwei');
-  const normalGweiElement = document.getElementById('normalGwei');
-  const slowGweiElement = document.getElementById('slowGwei');
-  const updateTimeElement = document.getElementById('updateTime');
-  
-  if (!fastGweiElement || !normalGweiElement || !slowGweiElement) {
-    console.error('One or more GWEI value elements not found');
-    return;
-  }
-  
-  fastGweiElement.textContent = 'Loading...';
-  normalGweiElement.textContent = 'Loading...';
-  slowGweiElement.textContent = 'Loading...';
-
+async function fetchGasPriceData() {
   try {
     const response = await fetch(RPC_URL, {
       method: 'POST',
@@ -43,7 +32,7 @@ async function fetchGasPrice() {
       },
       body: JSON.stringify({
         jsonrpc: '2.0',
-        method: 'eth_gasPrice', // Standard Ethereum method, assuming HyperEVM is compatible
+        method: 'eth_gasPrice',
         params: [],
         id: 1,
       }),
@@ -59,32 +48,106 @@ async function fetchGasPrice() {
       throw new Error(`RPC Error: ${data.error.message}`);
     }
 
-    if (data.result) {
-      const gasPriceHex = data.result;
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch gas price:', error);
+    throw error;
+  }
+}
+
+async function fetchHypePrice() {
+  try {
+    const response = await fetch(HYPE_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'allMids'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data && data.HYPE) {
+      hypePrice = parseFloat(data.HYPE);
+      document.getElementById('hypePriceValue').textContent = hypePrice.toFixed(2);
+      return hypePrice;
+    } else {
+      throw new Error('HYPE price not found in response');
+    }
+  } catch (error) {
+    console.error('Failed to fetch HYPE price:', error);
+    document.getElementById('hypePriceValue').textContent = 'Error';
+    return null;
+  }
+}
+
+async function fetchGasPrice() {
+  const normalGweiElement = document.getElementById('normalGwei');
+  const fastGweiElement = document.getElementById('fastGwei');
+  const instantGweiElement = document.getElementById('instantGwei');
+  const normalUsdElement = document.getElementById('normalUsd');
+  const fastUsdElement = document.getElementById('fastUsd');
+  const instantUsdElement = document.getElementById('instantUsd');
+  const updateTimeElement = document.getElementById('updateTime');
+  const hypePriceElement = document.getElementById('hypePriceValue');
+  
+  if (!normalGweiElement || !fastGweiElement || !instantGweiElement) {
+    console.error('One or more GWEI value elements not found');
+    return;
+  }
+  
+  normalGweiElement.textContent = 'Loading...';
+  fastGweiElement.textContent = 'Loading...';
+  instantGweiElement.textContent = 'Loading...';
+  if (hypePriceElement) hypePriceElement.textContent = 'Loading...';
+
+  try {
+    const [gasData, hypePriceValue] = await Promise.all([
+      fetchGasPriceData(),
+      fetchHypePrice()
+    ]);
+
+    if (gasData && gasData.result) {
+      const gasPriceHex = gasData.result;
       const gasPriceWei = parseInt(gasPriceHex, 16);
       
-      const normalGasPriceGwei = (gasPriceWei / GWEI_CONVERSION_FACTOR).toFixed(0);
-      const fastGasPriceGwei = (gasPriceWei * FAST_MULTIPLIER / GWEI_CONVERSION_FACTOR).toFixed(0);
-      const slowGasPriceGwei = (gasPriceWei * SLOW_MULTIPLIER / GWEI_CONVERSION_FACTOR).toFixed(0);
+      const normalGasPriceGwei = (gasPriceWei * NORMAL_MULTIPLIER / GWEI_CONVERSION_FACTOR).toFixed(2);
+      const fastGasPriceGwei = (gasPriceWei * FAST_MULTIPLIER / GWEI_CONVERSION_FACTOR).toFixed(2);
+      const instantGasPriceGwei = (gasPriceWei * INSTANT_MULTIPLIER / GWEI_CONVERSION_FACTOR).toFixed(2);
       
-      fastGweiElement.textContent = fastGasPriceGwei;
       normalGweiElement.textContent = normalGasPriceGwei;
-      slowGweiElement.textContent = slowGasPriceGwei;
+      fastGweiElement.textContent = fastGasPriceGwei;
+      instantGweiElement.textContent = instantGasPriceGwei;
+      
+      if (hypePrice && normalUsdElement && fastUsdElement && instantUsdElement) {
+        const normalUsdCost = (parseFloat(normalGasPriceGwei) * STANDARD_GAS_LIMIT * hypePrice / 1e9).toFixed(4);
+        const fastUsdCost = (parseFloat(fastGasPriceGwei) * STANDARD_GAS_LIMIT * hypePrice / 1e9).toFixed(4);
+        const instantUsdCost = (parseFloat(instantGasPriceGwei) * STANDARD_GAS_LIMIT * hypePrice / 1e9).toFixed(4);
+        
+        normalUsdElement.textContent = `$${normalUsdCost}`;
+        fastUsdElement.textContent = `$${fastUsdCost}`;
+        instantUsdElement.textContent = `$${instantUsdCost}`;
+      }
       
       lastUpdateTime = new Date();
       updateTimeElement.textContent = formatTime(lastUpdateTime);
-      
       document.querySelector('.timestamp').textContent = 'now';
-      
     } else {
-      fastGweiElement.textContent = 'N/A';
       normalGweiElement.textContent = 'N/A';
-      slowGweiElement.textContent = 'N/A';
-      console.error('No result in RPC response:', data);
+      fastGweiElement.textContent = 'N/A';
+      instantGweiElement.textContent = 'N/A';
+      if (normalUsdElement) normalUsdElement.textContent = 'N/A';
+      if (fastUsdElement) fastUsdElement.textContent = 'N/A';
+      if (instantUsdElement) instantUsdElement.textContent = 'N/A';
+      console.error('No result in RPC response:', gasData);
     }
-
   } catch (error) {
-    console.error('Failed to fetch gas price:', error);
+    console.error('Error fetching data:', error);
     
     let errorMessage = 'Error';
     if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
@@ -95,9 +158,12 @@ async function fetchGasPrice() {
       errorMessage = 'RPC Error';
     }
     
-    fastGweiElement.textContent = errorMessage;
     normalGweiElement.textContent = errorMessage;
-    slowGweiElement.textContent = errorMessage;
+    fastGweiElement.textContent = errorMessage;
+    instantGweiElement.textContent = errorMessage;
+    if (normalUsdElement) normalUsdElement.textContent = errorMessage;
+    if (fastUsdElement) fastUsdElement.textContent = errorMessage;
+    if (instantUsdElement) instantUsdElement.textContent = errorMessage;
     
     console.debug(`Detailed error: ${error.message}`);
   }

@@ -10,20 +10,27 @@
     <table id="gasPriceTable">
       <tr>
         <th></th>
-        <th>Fast</th>
         <th>Normal</th>
-        <th>Slow</th>
+        <th>Fast</th>
+        <th>Instant</th>
       </tr>
       <tr>
-        <td>HyperEVM</td>
-        <td id="fastGwei">-</td>
+        <td>GWEI</td>
         <td id="normalGwei">-</td>
-        <td id="slowGwei">-</td>
+        <td id="fastGwei">-</td>
+        <td id="instantGwei">-</td>
         <td class="timestamp">50s ago</td>
+      </tr>
+      <tr id="usdCostRow">
+        <td>USD</td>
+        <td id="normalUsd">-</td>
+        <td id="fastUsd">-</td>
+        <td id="instantUsd">-</td>
       </tr>
     </table>
   </div>
   <div id="lastUpdated">Last updated: <span id="updateTime">-</span></div>
+  <div id="hypePrice">HYPE Price: <span id="hypePriceValue">-</span> USD</div>
   <button id="refreshButton">Refresh</button>
   <script src="popup.js"></script>
 </body>
