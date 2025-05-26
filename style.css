@@ -1,0 +1,56 @@
+body {
+  font-family: Arial, sans-serif;
+  width: 250px;
+  padding: 10px;
+  text-align: center;
+  background-color: #f0f0f0;
+}
+
+h1 {
+  font-size: 18px;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+#gasPriceContainer {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 10px;
+}
+
+#gasPriceContainer p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+}
+
+#gweiValue {
+  font-weight: bold;
+  font-size: 18px;
+  color: #007bff; /* A blue color, can be changed */
+}
+
+#refreshButton {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#refreshButton:hover {
+  background-color: #0056b3;
+}
+
+#refreshButton:active {
+  background-color: #004085;
+}
