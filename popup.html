@@ -5,10 +5,25 @@
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-  <h1>HyperEVM Gas Price</h1>
+  <h1>HyperEVM Gas Prices</h1>
   <div id="gasPriceContainer">
-    <p>Current GWEI: <span id="gweiValue">Loading...</span></p>
+    <table id="gasPriceTable">
+      <tr>
+        <th></th>
+        <th>Fast</th>
+        <th>Normal</th>
+        <th>Slow</th>
+      </tr>
+      <tr>
+        <td>HyperEVM</td>
+        <td id="fastGwei">-</td>
+        <td id="normalGwei">-</td>
+        <td id="slowGwei">-</td>
+        <td class="timestamp">50s ago</td>
+      </tr>
+    </table>
   </div>
+  <div id="lastUpdated">Last updated: <span id="updateTime">-</span></div>
   <button id="refreshButton">Refresh</button>
   <script src="popup.js"></script>
 </body>
