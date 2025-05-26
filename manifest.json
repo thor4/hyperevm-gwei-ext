@@ -6,7 +6,7 @@
   "permissions": [
     "storage",
     "alarms",
-    "https://*/*"
+    "https://rpc.hyperliquid.xyz/*"
   ],
   "action": {
     "default_popup": "popup.html",
