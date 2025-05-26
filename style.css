@@ -40,16 +40,27 @@ h1 {
   font-weight: bold;
 }
 
+#normalGwei {
+  color: #00a070; /* HyperLiquid green */
+}
+
 #fastGwei {
   color: #00c389; /* HyperLiquid mint green */
 }
 
-#normalGwei {
-  color: #00a070; /* Slightly darker green */
+#instantGwei {
+  color: #008055; /* Darker green */
 }
 
-#slowGwei {
-  color: #008055; /* Even darker green */
+#usdCostRow td {
+  font-size: 12px;
+  color: #666;
+}
+
+#hypePrice {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 10px;
 }
 
 .timestamp {
