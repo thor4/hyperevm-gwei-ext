@@ -55,17 +55,26 @@ async function fetchGasPrice() {
 
   } catch (error) {
     console.error('Failed to fetch gas price:', error);
-    gweiValueElement.textContent = 'Error';
-    // Display more specific error for debugging if needed
-    // gweiValueElement.textContent = `Error: ${error.message}`; 
+    
+    if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+      gweiValueElement.textContent = 'Network Error';
+    } else if (error.message.includes('HTTP error')) {
+      gweiValueElement.textContent = 'RPC Server Error';
+    } else if (error.message.includes('RPC Error')) {
+      gweiValueElement.textContent = 'RPC Error';
+    } else {
+      gweiValueElement.textContent = 'Error';
+    }
+    
+    console.debug(`Detailed error: ${error.message}`);
   }
 }
 
-// Optional: Set up an alarm for periodic updates (e.g., every minute)
+// Set up an alarm for periodic updates (every minute)
 // This requires the "alarms" permission in manifest.json
-// chrome.alarms.create('fetchGasPriceAlarm', { periodInMinutes: 1 });
-// chrome.alarms.onAlarm.addListener((alarm) => {
-//   if (alarm.name === 'fetchGasPriceAlarm') {
-//     fetchGasPrice();
-//   }
-// });
+chrome.alarms.create('fetchGasPriceAlarm', { periodInMinutes: 1 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'fetchGasPriceAlarm') {
+    fetchGasPrice();
+  }
+});
